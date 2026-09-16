@@ -7,6 +7,7 @@ import com.creator.RetailFlow.sale.entity.Sale;
 import com.creator.RetailFlow.sale.service.SaleService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -75,6 +76,7 @@ public class SaleController {
         response.setItems(itemResponses);
         return response;
     }
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public List<SaleResponse> getSalesBetween(
             @RequestParam("from") String from,
@@ -87,6 +89,7 @@ public class SaleController {
                 .map(this::toResponse)
                 .toList();
     }
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/{id}/void")
     public ResponseEntity<SaleResponse> voidSale(@PathVariable Long id) {
         Sale sale = saleService.voidSale(id);
