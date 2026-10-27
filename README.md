@@ -539,42 +539,21 @@ Inventory is updated and the sale is persisted as part of the checkout transacti
 
 ---
 
-## 🗺️ Development Roadmap
+## Development
 
-### Completed
+RetailFlow is actively developed and maintained through GitHub Issues and pull requests.
 
-- [x] Product management
-- [x] Inventory management
-- [x] Barcode lookup
-- [x] Barcode generation
-- [x] JWT authentication
-- [x] Checkout
-- [x] Invoice generation
-- [x] Invoice lookup
-- [x] Sales reports
-- [x] Sale voiding
-- [x] Inventory restoration on sale void
-- [x] Checkout validation
-- [x] Checkout service tests
+Current development work, bug fixes, feature proposals, and improvements are tracked through the repository's issue tracker.
 
-### In Progress
+Before implementing a significant change:
 
-- [ ] Enhanced discount validation
-- [ ] Admin-controlled scheduled discounts
-- [ ] Sales report pagination
-- [ ] Additional integration tests
-- [ ] Barcode display and printing improvements
-- [ ] Expand role-based authorization coverage
+1. Check existing issues.
+2. Open or discuss an issue for larger changes.
+3. Create a feature or fix branch.
+4. Implement and test the change.
+5. Open a pull request with a clear description of the changes.
 
-### Planned
-
-- [ ] CI/CD with GitHub Actions
-- [ ] OpenAPI / Swagger documentation
-- [ ] Advanced sales analytics
-- [ ] Low-stock notifications
-- [ ] Improved audit logging
-- [ ] Production deployment documentation
-- [ ] Flyway database migrations
+The README focuses on the current capabilities and architecture of RetailFlow rather than maintaining a separate feature roadmap.
 
 ---
 
