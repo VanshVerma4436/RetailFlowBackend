@@ -4,6 +4,7 @@ import com.creator.RetailFlow.inventory.dto.StockAdjustmentRequest;
 import com.creator.RetailFlow.inventory.service.InventoryService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import com.creator.RetailFlow.inventory.dto.InventoryLogResponse;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -20,6 +21,7 @@ public class InventoryController {
         this.inventoryService = inventoryService;
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/adjust")
     @ResponseStatus(HttpStatus.OK)
     public void adjustStock(

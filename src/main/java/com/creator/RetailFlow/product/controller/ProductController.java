@@ -11,6 +11,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,13 +19,13 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/products")
 public class ProductController {
-
     private final ProductService productService;
 
     public ProductController(ProductService productService) {
         this.productService = productService;
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public ProductResponse createProduct(
@@ -45,6 +46,10 @@ public class ProductController {
         return productService.getProductById(id);
     }
 
+    // Deliberately NOT restricted by @PreAuthorize: the browser loads this
+    // through a plain <img> tag, which cannot send an Authorization header.
+    // SecurityConfig also permits this path. A barcode image only encodes
+    // the product's barcode number, which is printed on the product anyway.
     @GetMapping("/{id}/barcode-image")
     public ResponseEntity<byte[]> getBarcodeImage(
             @PathVariable Long id
@@ -62,6 +67,7 @@ public class ProductController {
         return productService.getProductByBarcode(barcode);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     public ProductResponse updateProduct(
             @PathVariable Long id,
@@ -70,6 +76,7 @@ public class ProductController {
         return productService.updateProduct(id, request);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteProduct(

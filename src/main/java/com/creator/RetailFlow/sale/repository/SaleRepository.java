@@ -14,4 +14,7 @@ public interface SaleRepository extends JpaRepository<Sale, Long> {
     List<Sale> findByCreatedAtBetweenOrderByCreatedAtDesc(
             LocalDateTime start, LocalDateTime end
     );
+    List<Sale> findTop20ByInvoiceNumberContainingIgnoreCaseOrderByCreatedAtDesc(
+            String invoiceNumber
+    );
 }
