@@ -30,6 +30,17 @@ public class SaleController {
         return ResponseEntity.ok(toResponse(sale));
     }
 
+    // Open to any logged-in user (ADMIN or CASHIER): finds past invoices by
+    // partial invoice number so they can be reprinted. Returns at most 20.
+    @GetMapping("/lookup")
+    public List<SaleResponse> lookup(
+            @RequestParam(value = "query", defaultValue = "") String query) {
+        return saleService.lookupSales(query)
+                .stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<SaleResponse> getById(@PathVariable Long id) {
         Sale sale = saleService.getById(id);
@@ -40,6 +51,28 @@ public class SaleController {
     public ResponseEntity<SaleResponse> getByInvoiceNumber(
             @PathVariable String invoiceNumber) {
         Sale sale = saleService.getByInvoiceNumber(invoiceNumber);
+        return ResponseEntity.ok(toResponse(sale));
+    }
+
+    // Revenue reports stay ADMIN-only.
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping
+    public List<SaleResponse> getSalesBetween(
+            @RequestParam("from") String from,
+            @RequestParam("to") String to
+    ) {
+        LocalDateTime start = LocalDateTime.parse(from);
+        LocalDateTime end = LocalDateTime.parse(to);
+        return saleService.getSalesBetween(start, end)
+                .stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/{id}/void")
+    public ResponseEntity<SaleResponse> voidSale(@PathVariable Long id) {
+        Sale sale = saleService.voidSale(id);
         return ResponseEntity.ok(toResponse(sale));
     }
 
@@ -75,24 +108,5 @@ public class SaleController {
 
         response.setItems(itemResponses);
         return response;
-    }
-    @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping
-    public List<SaleResponse> getSalesBetween(
-            @RequestParam("from") String from,
-            @RequestParam("to") String to
-    ) {
-        LocalDateTime start = LocalDateTime.parse(from);
-        LocalDateTime end = LocalDateTime.parse(to);
-        return saleService.getSalesBetween(start, end)
-                .stream()
-                .map(this::toResponse)
-                .toList();
-    }
-    @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping("/{id}/void")
-    public ResponseEntity<SaleResponse> voidSale(@PathVariable Long id) {
-        Sale sale = saleService.voidSale(id);
-        return ResponseEntity.ok(toResponse(sale));
     }
 }

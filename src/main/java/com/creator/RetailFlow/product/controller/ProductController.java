@@ -46,7 +46,10 @@ public class ProductController {
         return productService.getProductById(id);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    // Deliberately NOT restricted by @PreAuthorize: the browser loads this
+    // through a plain <img> tag, which cannot send an Authorization header.
+    // SecurityConfig also permits this path. A barcode image only encodes
+    // the product's barcode number, which is printed on the product anyway.
     @GetMapping("/{id}/barcode-image")
     public ResponseEntity<byte[]> getBarcodeImage(
             @PathVariable Long id
@@ -72,6 +75,7 @@ public class ProductController {
     ) {
         return productService.updateProduct(id, request);
     }
+
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)

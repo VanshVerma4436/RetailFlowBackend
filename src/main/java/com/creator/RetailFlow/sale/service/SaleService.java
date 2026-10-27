@@ -176,13 +176,18 @@ public class SaleService {
                 ));
     }
 
-    private String generateInvoiceNumber() {
-        // Full UUID — practically collision-proof, unlike an 8-char slice.
-        return "INV-" + UUID.randomUUID().toString().toUpperCase();
-    }
     public List<Sale> getSalesBetween(LocalDateTime start, LocalDateTime end) {
         return saleRepository.findByCreatedAtBetweenOrderByCreatedAtDesc(start, end);
     }
+
+    // Used by the Invoices page so any logged-in user (including cashiers)
+    // can find a past invoice to reprint. Capped at 20 results.
+    public List<Sale> lookupSales(String query) {
+        String text = query == null ? "" : query.trim();
+        return saleRepository
+                .findTop20ByInvoiceNumberContainingIgnoreCaseOrderByCreatedAtDesc(text);
+    }
+
     @Transactional
     public Sale voidSale(Long id) {
         Sale sale = saleRepository.findById(id)
@@ -205,5 +210,9 @@ public class SaleService {
 
         sale.setVoided(true);
         return saleRepository.save(sale);
+    }
+
+    private String generateInvoiceNumber() {
+        return "INV-" + UUID.randomUUID().toString().toUpperCase();
     }
 }
