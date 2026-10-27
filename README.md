@@ -2,9 +2,20 @@
 
 A production-oriented **Spring Boot REST API for retail inventory, billing, sales, and stock management**.
 
-RetailFlow is designed for small and medium-sized retail businesses to manage products, track inventory, process sales, generate invoices, and maintain a reliable record of stock movements.
+RetailFlow is a full-stack retail management system designed for small and medium-sized businesses to manage products, track inventory, process sales, generate invoices, and maintain reliable stock records.
 
-The backend provides the business logic and REST APIs consumed by the RetailFlow frontend.
+This repository contains the **backend service**, including business logic, authentication, database access, inventory management, checkout, sales processing, and REST APIs consumed by the RetailFlow frontend.
+
+---
+
+## 🏗️ Project Repositories
+
+RetailFlow is divided into separate frontend and backend repositories.
+
+| Component | Repository | Technology |
+|---|---|---|
+| Frontend | [RetailFlowFrontend](https://github.com/mayankgupta-001/RetailFlowFrontend) | React, Vite, Tailwind CSS |
+| Backend | **RetailFlowBackend** | Java, Spring Boot, PostgreSQL |
 
 ---
 
@@ -15,20 +26,22 @@ The backend provides the business logic and REST APIs consumed by the RetailFlow
 - JWT-based authentication
 - User authentication and authorization
 - Secure password handling
-- Role-based access control
 - Protected API endpoints
+- Role-based endpoint authorization
 
 ### 📦 Product Management
 
 - Create products
 - Update products
 - Delete products
-- Get product details
+- Retrieve product details
+- Product listing
 - Search products by barcode
-- Track selling price and cost price
-- Track current stock
-- Configure minimum stock thresholds
+- Selling price and cost price management
+- Stock tracking
+- Minimum stock thresholds
 - Product categories
+- Automatic barcode generation
 
 ### 📊 Inventory Management
 
@@ -39,58 +52,62 @@ The backend provides the business logic and REST APIs consumed by the RetailFlow
 - Previous and new stock tracking
 - Low-stock threshold support
 - Transaction reasons
+- Automatic inventory updates during checkout
+- Inventory restoration when a sale is voided
 
 ### 🛒 Sales & Checkout
 
 - Cart-based checkout
 - Multiple products per sale
 - Duplicate product aggregation
+- Product and quantity validation
 - Stock availability validation
 - Automatic inventory deduction
 - Multiple payment methods
 - Transactional checkout
 - Unique invoice generation
-- Sale total calculation
+- Subtotal calculation
 - Discount handling
+- Final total calculation
 
-### 🧾 Invoice Management
+### 🧾 Invoice & Sale Management
 
-- Generate unique invoice numbers
-- Find sales by invoice number
+- Unique invoice number generation
+- Invoice lookup
 - Retrieve individual sales
-- Invoice lookup for previous transactions
-- Support for invoice reprinting workflows
+- Historical sale lookup
+- Invoice reprinting support
+- Sale voiding
+- Prevention of duplicate sale voids
+- Automatic inventory restoration after voiding
 
 ### 📈 Sales Reports
 
-- Sales report by date range
+- Sales reports by date range
 - Latest sales ordering
 - Historical sales lookup
-- Sale information including subtotal, discount, total and payment method
-
-### ↩️ Sale Management
-
-- Void completed sales
-- Prevent already-voided sales from being voided again
-- Automatically restore inventory when a sale is voided
+- Sale subtotal, discount, and total information
+- Payment method information
 
 ### 🏷️ Barcode Support
 
-- Barcode generation support using ZXing
-- Product barcode lookup
-- Designed for barcode-scanner based retail workflows
+- Automatic barcode generation
+- Barcode storage with product records
+- Barcode lookup
+- Barcode image generation using ZXing
+- Barcode-scanner-oriented product workflows
 
 ---
 
-## 🧠 Key Backend Design
+## 🧠 Backend Engineering
 
-RetailFlow is not just a CRUD application. The backend handles important retail business rules such as:
+RetailFlow is designed to go beyond basic CRUD operations by implementing important retail business rules directly in the backend.
 
 ### Transactional Checkout
 
-Checkout is performed inside a database transaction.
+Checkout is executed inside a database transaction.
 
-The backend:
+The general flow is:
 
 ```text
 Receive Cart
@@ -116,51 +133,109 @@ Calculate Final Total
 Save Sale
 ```
 
-This helps prevent inconsistent stock and sale data when checkout fails.
+If a critical operation fails, the transaction can roll back instead of leaving inventory and sales data in an inconsistent state.
 
 ### Concurrent Stock Protection
 
-Products are locked during checkout before stock is modified.
+During checkout, products are locked before stock is modified.
 
-Products are also processed in a consistent order to reduce the possibility of deadlocks when multiple checkouts operate on overlapping products.
+Products are also processed in a consistent order to reduce the possibility of database deadlocks when multiple checkouts operate on overlapping products.
 
 ### Sale Voiding
 
-When a sale is voided, the associated stock is restored automatically.
+Voiding a completed sale automatically restores the associated inventory.
 
 ```text
-Sale
- ↓
-Void Sale
- ↓
-Restore Stock
- ↓
+Completed Sale
+      ↓
+   Void Sale
+      ↓
+Restore Inventory
+      ↓
 Mark Sale as Voided
 ```
 
+This keeps inventory records consistent with the sale history.
+
 ---
 
-## 🛠️ Tech Stack
+## 🛠️ Technology Stack
 
 | Technology | Purpose |
 |---|---|
 | Java 25 | Backend language |
 | Spring Boot 4.1 | Application framework |
-| Spring Web MVC | REST APIs |
+| Spring Web MVC | REST API development |
 | Spring Data JPA | Database access |
-| Spring Security | Authentication & authorization |
+| Hibernate | ORM |
+| Spring Security | Authentication and authorization |
 | JWT | Stateless authentication |
-| PostgreSQL | Production database |
-| H2 | Testing/local database support |
-| Maven | Build & dependency management |
-| Docker Compose | Local PostgreSQL environment |
+| PostgreSQL | Primary database |
+| H2 | Local/testing database |
+| Maven | Build and dependency management |
+| Docker Compose | Local development environment |
 | ZXing | Barcode generation |
-| Lombok | Boilerplate reduction |
 | Jakarta Validation | Request validation |
+| Lombok | Boilerplate reduction |
 
 ---
 
-## 🏗️ Project Structure
+## 🏗️ Architecture
+
+RetailFlow follows a layered backend architecture.
+
+```text
+                    ┌──────────────────────┐
+                    │   RetailFlow         │
+                    │      Frontend        │
+                    │ React + Vite         │
+                    └──────────┬───────────┘
+                               │
+                            REST API
+                               │
+                               ▼
+                    ┌──────────────────────┐
+                    │   RetailFlow         │
+                    │      Backend         │
+                    │   Spring Boot        │
+                    ├──────────────────────┤
+                    │ Controllers          │
+                    │ DTOs                 │
+                    │ Services             │
+                    │ Repositories         │
+                    │ Security             │
+                    │ Exception Handling   │
+                    └──────────┬───────────┘
+                               │
+                               ▼
+                    ┌──────────────────────┐
+                    │      PostgreSQL      │
+                    └──────────────────────┘
+```
+
+### Request Flow
+
+```text
+HTTP Request
+     ↓
+Controller
+     ↓
+Validation / DTO
+     ↓
+Service
+     ↓
+Repository
+     ↓
+Database
+     ↓
+Response
+```
+
+Business rules are primarily handled in the service layer rather than being implemented directly in controllers.
+
+---
+
+## 📁 Project Structure
 
 ```text
 src/
@@ -168,7 +243,7 @@ src/
 │   ├── java/com/creator/RetailFlow/
 │   │
 │   ├── config/
-│   │   └── SecurityConfig
+│   │   └── SecurityConfig.java
 │   │
 │   ├── auth/
 │   │   ├── controller/
@@ -182,7 +257,8 @@ src/
 │   │   ├── dto/
 │   │   ├── entity/
 │   │   ├── repository/
-│   │   └── service/
+│   │   ├── service/
+│   │   └── util/
 │   │
 │   ├── inventory/
 │   │   ├── controller/
@@ -199,8 +275,8 @@ src/
 │   │   └── service/
 │   │
 │   └── exception/
-│       ├── GlobalExceptionHandler
-│       └── ResourceNotFoundException
+│       ├── GlobalExceptionHandler.java
+│       └── ResourceNotFoundException.java
 │
 └── resources/
     ├── application.properties
@@ -209,17 +285,21 @@ src/
 
 ---
 
-## 🔌 API Modules
+## 🔌 API Overview
 
 ### Authentication
+
+Base path:
 
 ```text
 /api/auth
 ```
 
-Handles user authentication and JWT token generation.
+Responsible for user authentication and JWT token generation.
 
 ### Products
+
+Base path:
 
 ```text
 /api/products
@@ -227,14 +307,17 @@ Handles user authentication and JWT token generation.
 
 | Method | Endpoint | Description |
 |---|---|---|
-| POST | `/api/products` | Create product |
-| GET | `/api/products` | Get products |
-| GET | `/api/products/{id}` | Get product |
-| GET | `/api/products/barcode/{barcode}` | Find by barcode |
-| PUT | `/api/products/{id}` | Update product |
-| DELETE | `/api/products/{id}` | Delete product |
+| `POST` | `/api/products` | Create product |
+| `GET` | `/api/products` | Get products |
+| `GET` | `/api/products/{id}` | Get product |
+| `GET` | `/api/products/{id}/barcode-image` | Get barcode image |
+| `GET` | `/api/products/barcode/{barcode}` | Find product by barcode |
+| `PUT` | `/api/products/{id}` | Update product |
+| `DELETE` | `/api/products/{id}` | Delete product |
 
 ### Inventory
+
+Base path:
 
 ```text
 /api/inventory
@@ -242,18 +325,21 @@ Handles user authentication and JWT token generation.
 
 | Method | Endpoint | Description |
 |---|---|---|
-| POST | `/api/inventory/adjust` | Adjust stock |
-| GET | `/api/inventory/logs/product/{productId}` | Get inventory history |
+| `POST` | `/api/inventory/adjust` | Adjust stock |
+| `GET` | `/api/inventory/logs/product/{productId}` | Get product inventory history |
 
 ### Sales
+
+Base path:
 
 ```text
 /api/sales
 ```
 
-Includes:
+The sales module provides:
 
 - Checkout
+- Invoice generation
 - Invoice lookup
 - Sale retrieval
 - Sales reports
@@ -261,9 +347,9 @@ Includes:
 
 ---
 
-## 🗄️ Database
+## 🗄️ Database Model
 
-RetailFlow uses PostgreSQL as its primary database.
+PostgreSQL is used as the primary database.
 
 Core entities include:
 
@@ -335,15 +421,15 @@ subtotal
 
 ### Prerequisites
 
-Make sure you have:
+Make sure you have the following installed:
 
 - Java 25
 - Maven
 - Docker
 - Docker Compose
-- PostgreSQL (if running without Docker)
+- PostgreSQL if running without Docker
 
-### 1. Clone the repository
+### 1. Clone the Repository
 
 ```bash
 git clone https://github.com/mayankgupta-001/RetailFlowBackend.git
@@ -351,28 +437,29 @@ git clone https://github.com/mayankgupta-001/RetailFlowBackend.git
 cd RetailFlowBackend
 ```
 
-### 2. Configure environment variables
+### 2. Configure Environment Variables
 
-Create a `.env` file containing the required database and authentication configuration.
+Create a `.env` file containing the required configuration.
 
 Example:
 
 ```env
 DATABASE_USER=your_username
 DATABASE_PASS=your_password
-
 JWT_SECRET=your_secure_jwt_secret
 ```
 
-Never commit real credentials or secrets to GitHub.
+> **Important:** Never commit real credentials, passwords, tokens, or other secrets to GitHub.
 
 ### 3. Start PostgreSQL
+
+Using Docker Compose:
 
 ```bash
 docker compose up -d
 ```
 
-### 4. Run the application
+### 4. Run the Application
 
 Using Maven Wrapper:
 
@@ -382,26 +469,26 @@ Using Maven Wrapper:
 
 On Windows:
 
-```bash
-mvnw.cmd spring-boot:run
+```powershell
+.\mvnw.cmd spring-boot:run
 ```
 
-The API will be available locally through the configured Spring Boot port.
+The backend will start on the configured Spring Boot port.
 
 ---
 
 ## 🧪 Testing
 
-Run the test suite with:
+Run the complete test suite with:
 
 ```bash
 ./mvnw test
 ```
 
-Windows:
+On Windows:
 
-```bash
-mvnw.cmd test
+```powershell
+.\mvnw.cmd test
 ```
 
 Current tests cover important checkout scenarios including:
@@ -415,11 +502,13 @@ Current tests cover important checkout scenarios including:
 - Negative discount
 - Discount greater than subtotal
 
+Additional integration and API-level tests are planned as the project evolves.
+
 ---
 
-## 🔄 Checkout Example
+## 🛒 Checkout Example
 
-A checkout request follows the general flow:
+Example checkout request:
 
 ```json
 {
@@ -434,34 +523,35 @@ A checkout request follows the general flow:
 }
 ```
 
-The backend calculates the sale:
+The backend processes the request as:
 
 ```text
 Product Price × Quantity
-        ↓
-      Subtotal
-        ↓
-     Discount
-        ↓
-    Final Total
+          ↓
+       Subtotal
+          ↓
+        Discount
+          ↓
+      Final Total
 ```
 
-The server then saves the sale and updates inventory within the transaction.
+Inventory is updated and the sale is persisted as part of the checkout transaction.
 
 ---
 
-## 📋 Development Roadmap
+## 🗺️ Development Roadmap
 
 ### Completed
 
 - [x] Product management
 - [x] Inventory management
 - [x] Barcode lookup
+- [x] Barcode generation
 - [x] JWT authentication
 - [x] Checkout
 - [x] Invoice generation
 - [x] Invoice lookup
-- [x] Sale reports
+- [x] Sales reports
 - [x] Sale voiding
 - [x] Inventory restoration on sale void
 - [x] Checkout validation
@@ -471,23 +561,26 @@ The server then saves the sale and updates inventory within the transaction.
 
 - [ ] Enhanced discount validation
 - [ ] Admin-controlled scheduled discounts
-- [ ] Role-based authorization improvements
 - [ ] Sales report pagination
 - [ ] Additional integration tests
+- [ ] Barcode display and printing improvements
+- [ ] Expand role-based authorization coverage
 
 ### Planned
 
-- [ ] Flyway database migrations
 - [ ] CI/CD with GitHub Actions
-- [ ] Advanced analytics
+- [ ] OpenAPI / Swagger documentation
+- [ ] Advanced sales analytics
 - [ ] Low-stock notifications
 - [ ] Improved audit logging
+- [ ] Production deployment documentation
+- [ ] Flyway database migrations
 
 ---
 
 ## 🎯 Project Goals
 
-RetailFlow is being developed with a focus on real-world backend engineering rather than only basic CRUD functionality.
+RetailFlow is being developed with a focus on practical backend engineering and real-world business requirements rather than only basic CRUD functionality.
 
 Key engineering goals include:
 
@@ -497,8 +590,20 @@ Key engineering goals include:
 - Backend-controlled business rules
 - Database integrity
 - Testable service logic
-- Scalable REST APIs
-- Clean separation of responsibilities
+- Clear separation of responsibilities
+- Maintainable REST APIs
+- Reliable error handling
+- Production-oriented development practices
+
+---
+
+## 🤝 Contributing
+
+Contributions, bug reports, feature requests, and improvements are welcome.
+
+Before contributing, please review the project's contribution guidelines.
+
+If you find a bug or want to propose a feature, open a GitHub Issue with enough information to reproduce or understand the request.
 
 ---
 
@@ -508,7 +613,8 @@ Key engineering goals include:
 
 The frontend provides the user interface for interacting with the RetailFlow backend.
 
-[RetailFlow Frontend](https://github.com/mayankgupta-001/RetailFlowFrontend)
+**Repository:**  
+https://github.com/mayankgupta-001/RetailFlowFrontend
 
 ---
 
@@ -523,4 +629,6 @@ GLA University, Mathura
 
 ## 📄 License
 
-This project is currently intended for educational and portfolio development purposes.
+This project is currently under development and is intended for educational, portfolio, and open-source development purposes.
+
+A formal open-source license will be added before accepting external contributions.
